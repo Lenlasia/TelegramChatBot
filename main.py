@@ -138,7 +138,7 @@ async def cmd_test1(message: types.Message):
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
                 return
-            await message.answer('')
+            await message.answer('Егор Маликов - ###\nЕгор Маркачев - ###')
         elif message.text == 'Стоимость 💵':
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
