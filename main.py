@@ -8,6 +8,7 @@ from openai import OpenAI
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+import requests
 
 client = OpenAI(api_key="sk-proj-6VyJt1wmqrg7Va7WprONT3BlbkFJqz9kJAx3SJqSzYRsOlf8")
 
@@ -45,6 +46,45 @@ class FormObratSvyaz(StatesGroup):
 
 class FormGPT(StatesGroup):
     zapros = State()
+
+
+def get_map():
+    geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+
+    geocoder_params = {
+        "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+        "geocode": "Тольятти, Южное Шоссе, 163",
+        "format": "json"}
+
+    response = requests.get(geocoder_api_server, params=geocoder_params)
+
+    if not response:
+        # обработка ошибочной ситуации
+        pass
+
+    # Преобразуем ответ в json-объект
+    json_response = response.json()
+    # Получаем первый топоним из ответа геокодера.
+    toponym = json_response["response"]["GeoObjectCollection"][
+        "featureMember"][0]["GeoObject"]
+    # Координаты центра топонима:
+    toponym_coodrinates = toponym["Point"]["pos"]
+    # Долгота и широта:
+    toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
+
+    delta = "0.005"
+
+    # Собираем параметры для запроса к StaticMapsAPI:
+    map_params = {
+        "ll": ",".join([toponym_longitude, toponym_lattitude]),
+        "spn": ",".join([delta, delta]),
+        "l": "map"
+    }
+
+    map_api_server = "http://static-maps.yandex.ru/1.x/"
+    # ... и выполняем запрос
+    response = requests.get(map_api_server, params=map_params)
+    return response.url
 
 
 @dp.message_handler(commands="start")
@@ -95,7 +135,6 @@ async def enter_volume(message: types.Message, state: FSMContext):
     await bot.send_message(-1001722492789,
                            f'Новая заявка на обратную связь.\nСпособ связи - {sposob}\nИмя - {name}.\nЖелаемое время - {answer}')
     await state.finish()
-
 
 
 @dp.message_handler(state=FormGPT)
@@ -175,6 +214,7 @@ async def cmd_test1(message: types.Message):
                 "задачам.\n\nИнновации и Технологии: Мы следим за последними технологическими трендами и используем "
                 "передовые технологии в наших проектах.\n\nПрисоединяйтесь к ChatBotsManagers сегодня, "
                 "и давайте вместе создадим продукты, которые изменят ваш бизнес к лучшему!")
+            await bot.send_photo(chat_id=message.chat.id, photo=get_map(), caption="Наш офис на Карте!")
         elif message.text == 'Команда👨‍👦‍👦':
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
@@ -247,4 +287,3 @@ async def cmd_test1(message: types.Message):
 if __name__ == "__main__":
     # Запуск бота
     executor.start_polling(dp, skip_updates=True)
-
