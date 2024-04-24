@@ -10,6 +10,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import requests
 
+from data import db_session
+
 client = OpenAI(api_key="sk-proj-6VyJt1wmqrg7Va7WprONT3BlbkFJqz9kJAx3SJqSzYRsOlf8")
 
 storage = MemoryStorage()
@@ -286,4 +288,5 @@ async def cmd_test1(message: types.Message):
 
 if __name__ == "__main__":
     # Запуск бота
+    db_session.global_init("db/db.sqlite.db")
     executor.start_polling(dp, skip_updates=True)
