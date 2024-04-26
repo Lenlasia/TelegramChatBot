@@ -12,4 +12,4 @@ class User(SqlAlchemyBase):
     count_of_used_b = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     count_of_r = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
 
-    addresses = sqlalchemy.relationship('Address', backref='user')
+    addresses = sqlalchemy.orm.relationship('Address', backref='user')
