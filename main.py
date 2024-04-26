@@ -12,6 +12,7 @@ import requests
 
 from data import db_session
 from data.users import User
+from data.requests import Request
 
 client = OpenAI(api_key="sk-proj-6VyJt1wmqrg7Va7WprONT3BlbkFJqz9kJAx3SJqSzYRsOlf8")
 
@@ -287,6 +288,10 @@ async def cmd_test1(message: types.Message):
         elif message.text == 'Обратная связь 📞':
             user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
             user.count_of_r += 1
+
+            req = Request()
+            user.requests.append(req)
+            
             db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
