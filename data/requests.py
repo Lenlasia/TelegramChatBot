@@ -9,3 +9,4 @@ class Request(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     tg_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.schema.ForeignKey('users.tg_id'))
+    user = sqlalchemy.orm.relationship('User')
