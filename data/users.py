@@ -8,8 +8,8 @@ class User(SqlAlchemyBase):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     tg_id = sqlalchemy.Column(sqlalchemy.Integer, unique=True)
-    reg_data = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
+    reg_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     count_of_used_b = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
     count_of_r = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
 
-    addresses = sqlalchemy.orm.relationship('Address', backref='user')
+    requests = sqlalchemy.orm.relationship('Request', back_populates='user')
