@@ -11,6 +11,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import requests
 
 from data import db_session
+from data.users import User
 
 client = OpenAI(api_key="sk-proj-6VyJt1wmqrg7Va7WprONT3BlbkFJqz9kJAx3SJqSzYRsOlf8")
 
@@ -91,6 +92,14 @@ def get_map():
 
 @dp.message_handler(commands="start")
 async def cmd_test1(message: types.Message):
+    db_sess = db_session.create_session()
+    if not(db_sess.query(User.tg_id).filter(User.tg_id == message.from_user.id)):
+        user = User()
+        user.tg_id = message.from_user.id
+        user.count_of_used_b = 0
+        user.count_of_r = 0
+        db_sess.add(user)
+    db_sess.commit()
     await message.answer("Здравствуйте! Вас приветствует чат-бот компании ChatBotsManagers.\n\nДля управления ботом "
                          "воспользуйтесь меню снизу. Также чтобы узнать подробнее возпользуйтесь командой /help", reply_markup=keyboard)
 
@@ -166,6 +175,7 @@ async def handle_photo(message: types.Message):
 
 @dp.message_handler()
 async def cmd_test1(message: types.Message):
+    db_sess = db_session.create_session()
     if message.chat.id == -1001722492789:
         if '/close_ticket' in message.text:
             mess = message.text.replace('/close_ticket ', '')
@@ -185,12 +195,18 @@ async def cmd_test1(message: types.Message):
             await message.answer('Приветствуем в админ-панели.\n\nЧто хотите поменять?')
     else:
         if message.text == 'Отменить❌' and message.chat.id in open_tickets:
+            user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
+            user.count_of_used_b += 1
+            db_sess.commit()
             del open_tickets[open_tickets.index(message.chat.id)]
             await message.answer('Ваш тикет был закрыт!', reply_markup=keyboard)
             await bot.send_message(-1001722492789, f'Тикет {message.chat.id} был закрыт пользователем!')
         elif message.chat.id in open_tickets:
             await bot.send_message(-1001722492789, f"Ticket - {message.chat.id}\n\n{message.text}")
         elif message.text == 'О компании 🏢':
+            user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
+            user.count_of_used_b += 1
+            db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
                 return
@@ -218,6 +234,9 @@ async def cmd_test1(message: types.Message):
                 "и давайте вместе создадим продукты, которые изменят ваш бизнес к лучшему!")
             await bot.send_photo(chat_id=message.chat.id, photo=get_map(), caption="Наш офис на Карте!")
         elif message.text == 'Команда👨‍👦‍👦':
+            user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
+            user.count_of_used_b += 1
+            db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
                 return
@@ -229,6 +248,9 @@ async def cmd_test1(message: types.Message):
                                  'WEB-продуктов и чат-ботов.\n"Никогда нельзя останавливаться на достигнутом, '
                                  'нужно стремится к совершенству!"')
         elif message.text == 'Стоимость 💵':
+            user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
+            user.count_of_used_b += 1
+            db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
                 return
@@ -240,6 +262,9 @@ async def cmd_test1(message: types.Message):
                 "виртуальной реальности - от 100.00₽\n\nПрикладное применение нейросетей и их "
                 "интеграция в различные решения индустрии информационнных технологий - от 300.00₽")
         elif message.text == 'Портфолио 💼':
+            user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
+            user.count_of_used_b += 1
+            db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
                 return
@@ -247,6 +272,9 @@ async def cmd_test1(message: types.Message):
                                  'посмотреть, как устроены наши проекты и насколько хорошо наша команда выполняет '
                                  'свою работу!', reply_markup=portfolio)
         elif message.text == 'Связаться с менеджером 👩‍💼':
+            user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
+            user.count_of_used_b += 1
+            db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
                 return
@@ -257,6 +285,9 @@ async def cmd_test1(message: types.Message):
             await bot.send_message(-1001722492789,
                                    f'Открыт новый тикет!\n\nНомер: {message.chat.id}\n\nДля закрытия тикета напишите:\n/close_ticket {message.chat.id}\nДля ответа на сообщение пользователя - /answer {message.chat.id}')
         elif message.text == 'Обратная связь 📞':
+            user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
+            user.count_of_r += 1
+            db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
                 return
@@ -264,6 +295,9 @@ async def cmd_test1(message: types.Message):
                                  reply_markup=ReplyKeyboardMarkup().add('Отменить❌'))
             await FormObratSvyaz.sposob.set()
         elif message.text == 'Обратится к ChatGPT':
+            user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
+            user.count_of_used_b += 1
+            db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд. @AlViRityGPT_bot')
                 return
@@ -288,5 +322,6 @@ async def cmd_test1(message: types.Message):
 
 if __name__ == "__main__":
     # Запуск бота
-    db_session.global_init("db/db.sqlite.db")
+    db_session.global_init("db/db.sqlite")
     executor.start_polling(dp, skip_updates=True)
+
