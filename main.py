@@ -26,7 +26,7 @@ dp = Dispatcher(bot, storage=storage)
 logging.basicConfig(level=logging.INFO)
 
 open_tickets = []
-supports = [1624709653, 1062104473]
+supports = [1062104473]
 
 engine = "gpt-3.5-turbo"
 
@@ -94,7 +94,7 @@ def get_map():
 @dp.message_handler(commands="start")
 async def cmd_test1(message: types.Message):
     db_sess = db_session.create_session()
-    if not(db_sess.query(User.tg_id).filter(User.tg_id == message.from_user.id)):
+    if not (db_sess.query(User.tg_id).filter(User.tg_id == message.from_user.id).all()):
         user = User()
         user.tg_id = message.from_user.id
         user.count_of_used_b = 0
@@ -102,7 +102,8 @@ async def cmd_test1(message: types.Message):
         db_sess.add(user)
     db_sess.commit()
     await message.answer("Здравствуйте! Вас приветствует чат-бот компании ChatBotsManagers.\n\nДля управления ботом "
-                         "воспользуйтесь меню снизу. Также чтобы узнать подробнее возпользуйтесь командой /help", reply_markup=keyboard)
+                         "воспользуйтесь меню снизу. Также чтобы узнать подробнее возпользуйтесь командой /help",
+                         reply_markup=keyboard)
 
 
 @dp.message_handler(commands="help")
@@ -110,7 +111,8 @@ async def cmd_test1(message: types.Message):
     await message.answer("Здравствуйте! Вас приветствует чат-бот компании ChatBotsManagers.\n\nДля управления ботом "
                          "воспользуйтесь меню снизу. Наш чат-бот поможет вам получить информацию об"
                          "услугах компании, её портфолио и команде, а также вы сможете оставить запрос"
-                         "на обратную связь и связаться с менеджером в реальном времени!\nПриятного пользования!", reply_markup=keyboard)
+                         "на обратную связь и связаться с менеджером в реальном времени!\nПриятного пользования!",
+                         reply_markup=keyboard)
 
 
 @dp.message_handler(state=FormObratSvyaz.sposob)
@@ -144,7 +146,7 @@ async def enter_volume(message: types.Message, state: FSMContext):
     await message.answer('В ближайшее время свяжемся с Вами! Спасибо за проявленный интерес.', reply_markup=keyboard)
     sposob = (await state.get_data())['answer1']
     name = (await state.get_data())['answer2']
-    await bot.send_message(-1001722492789,
+    await bot.send_message(-1002039072519,
                            f'Новая заявка на обратную связь.\nСпособ связи - {sposob}\nИмя - {name}.\nЖелаемое время - {answer}')
     await state.finish()
 
@@ -157,7 +159,7 @@ async def enter_volume(message: types.Message, state: FSMContext):
         await state.finish()
         return
     completion = client.chat.completions.create(model="gpt-3.5-turbo",
-    messages=[{"role": "user", "content": answer}])
+                                                messages=[{"role": "user", "content": answer}])
     await message.answer(completion.choices[0].message.content)
     await FormGPT.zapros.set()
 
@@ -177,7 +179,7 @@ async def handle_photo(message: types.Message):
 @dp.message_handler()
 async def cmd_test1(message: types.Message):
     db_sess = db_session.create_session()
-    if message.chat.id == -1001722492789:
+    if message.chat.id == -1002039072519:
         if '/close_ticket' in message.text:
             mess = message.text.replace('/close_ticket ', '')
             if int(mess) in open_tickets:
@@ -201,9 +203,9 @@ async def cmd_test1(message: types.Message):
             db_sess.commit()
             del open_tickets[open_tickets.index(message.chat.id)]
             await message.answer('Ваш тикет был закрыт!', reply_markup=keyboard)
-            await bot.send_message(-1001722492789, f'Тикет {message.chat.id} был закрыт пользователем!')
+            await bot.send_message(-1002039072519, f'Тикет {message.chat.id} был закрыт пользователем!')
         elif message.chat.id in open_tickets:
-            await bot.send_message(-1001722492789, f"Ticket - {message.chat.id}\n\n{message.text}")
+            await bot.send_message(-1002039072519, f"Ticket - {message.chat.id}\n\n{message.text}")
         elif message.text == 'О компании 🏢':
             user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
             user.count_of_used_b += 1
@@ -283,7 +285,7 @@ async def cmd_test1(message: types.Message):
                 'Менеджер, освободившийся в близжайшее время ответит Вам. Напишите ваше обращение в чате с ботом.',
                 reply_markup=ReplyKeyboardMarkup().add('Отменить❌'))
             open_tickets.append(message.chat.id)
-            await bot.send_message(-1001722492789,
+            await bot.send_message(-1002039072519,
                                    f'Открыт новый тикет!\n\nНомер: {message.chat.id}\n\nДля закрытия тикета напишите:\n/close_ticket {message.chat.id}\nДля ответа на сообщение пользователя - /answer {message.chat.id}')
         elif message.text == 'Обратная связь 📞':
             user = db_sess.query(User).filter(User.tg_id == message.from_user.id).first()
@@ -291,7 +293,7 @@ async def cmd_test1(message: types.Message):
 
             req = Request()
             user.requests.append(req)
-            
+
             db_sess.commit()
             if 'group' in message.chat.type:
                 await message.answer('Перейдите в чат с ботом, для дальнейшего использования команд.')
@@ -318,7 +320,7 @@ async def cmd_test1(message: types.Message):
                          f'Пользователь напис' \
                          f'ал тебе: {message.text}, ответь ему пожалуйста.'
                 completion = client.chat.completions.create(model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}])
+                                                            messages=[{"role": "user", "content": prompt}])
                 await message.answer('Ответ Нейросети:')
                 await message.answer(completion.choices[0].message.content)
                 await message.answer('Для дальнейшего использования бота, используйте меню ниже.',
